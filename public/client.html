@@ -1,45 +1,61 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>10-minute realtime web chat</title>
+    <title>Enquete Rápida</title>
     <script src='http://code.jquery.com/jquery-1.8.0.min.js'></script>
   </head>
   <body>
-    <h1>Chat Client</h1>
+    <font size="10" face="arial">Questão:</font>
     <form action=''>
-      user_id: <input type='text' id='user-id' /><br/>
-      message: <textarea id='msg'></textarea>
+
+
+   
+      <span id=Pergunta></span> <br>
+      <input type='radio' name='Alternativas' value='A' /><span id=textA></span> <br>
+      <input type='radio' name='Alternativas' value='B' /><span id=textB></span> <br>
+      <input type='radio' name='Alternativas' value='C' /><span id=textC></span>  <br>
+      <input type='radio' name='Alternativas' value='D' /><span id=textD></span>  <br>
+      
       <input type='button' value='Send' id='send' />
+
+
     </form>
-    <div id='msgs'></div>
 
     <script src='/javascripts/faye.js'></script>
     <script>
-      var $userId = $('#user-id');
-      var $msg = $('#msg');
-      var $msgs = $('#msgs');
+        var $userId = $('#user-id');
+        var $msg = $('#msg');
+        var $msgs = $('#msgs');
 
-      $('#send').on('click', null, function() {
-        var message = {
-          userId: $userId.val(),
-          message: $msg.val()
-        };
+        $('#send').on('click', null, function () {
 
-        $.ajax({
-          type: 'POST',
-          url: 'http://localhost:8000/message',
-          data: message,
-          dataType: 'json'
+
+            var message = {
+                resposta: $("input[name=Alternativas]:checked").val()
+                
+                
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: 'http://ec2-177-71-240-80.sa-east-1.compute.amazonaws.com:8000/resposta',
+                data: message,
+                dataType: 'json'
+            });
+
+            $msg.val('');
         });
 
-        $msg.val('');
-      });
+        var client = new Faye.Client('http://ec2-177-71-240-80.sa-east-1.compute.amazonaws.com:8001/');
 
-      var client = new Faye.Client('http://localhost:8001/');
-
-      client.subscribe('/chatroom', function(obj) {
-        $msgs.append('<p>' + obj.userId + ': ' + obj.message + '<\/p>');
-      });
+        client.subscribe('/chatroom', function (obj) {
+            $msgs.append('<p>' + obj.userId + ': ' + obj.message + '<\/p>');
+            $("#Pergunta").text(obj.pergunta);
+            $("#textA").text(obj.alt1);
+            $("#textB").text(obj.alt2);
+            $("#textC").text(obj.alt3);
+            $("#textD").text(obj.alt4);
+        });
     </script>
   </body>
 </html>

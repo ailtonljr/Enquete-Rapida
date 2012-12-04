@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Enquete Rápida</title>
+    <script src='http://code.jquery.com/jquery-1.8.0.min.js'></script>
+  </head>
+  <body>
+    <font size="10" face="arial">Questão:</font>
+    <form action=''>
+      
+      Pergunta: <textarea id='question'></textarea> <br>
+      A: <textarea id='alternativa1'></textarea> Qtd: <span id="qtdA">0</span><br>
+      B: <textarea id='alternativa2'></textarea> Qtd: <span id="qtdB">0</span><br>
+      C: <textarea id='alternativa3'></textarea> Qtd: <span id="qtdC">0</span><br>
+      D: <textarea id='alternativa4'></textarea> Qtd: <span id="qtdD">0</span><br>
+
+      <input type='button' value='Send' id='send' />
+   
+      
+    </form>
+
+    <script src='/javascripts/faye.js'></script>
+    <script>
+        var $userId = $('#user-id');
+        var $msg = $('#msg');
+        var $msgs = $('#msgs');
+
+        var $pergunta = $('#question');
+        var $alt1 = $('#alternativa1');
+        var $alt2 = $('#alternativa2');
+        var $alt3 = $('#alternativa3');
+        var $alt4 = $('#alternativa4');
+
+	var $respostas = new Array();
+
+        $('#send').on('click', null, function () {
+            var message = {
+                userId: $userId.val(),
+                message: $msg.val(),
+                pergunta: $pergunta.val(),
+                alt1: $alt1.val(),
+                alt2: $alt2.val(),
+                alt3: $alt3.val(),
+                alt4: $alt4.val()
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: 'http://ec2-177-71-240-80.sa-east-1.compute.amazonaws.com:8000/message',
+                data: message,
+                dataType: 'json'
+            });
+
+	    $respostas[0] = 0; $respostas[1] = 0; $respostas[2] = 0; $respostas[3] = 0;
+	    $("#qtdA").text($respostas[0]);
+	    $("#qtdB").text($respostas[1]);
+	    $("#qtdC").text($respostas[2]);
+            $("#qtdD").text($respostas[3]);
+	    
+
+
+            $msg.val('');
+        });
+
+        var client = new Faye.Client('http://ec2-177-71-240-80.sa-east-1.compute.amazonaws.com:8001/');
+
+        client.subscribe('/chatroom', function (obj) {
+            $msgs.append('<p>' + obj.userId + ': ' + obj.message + '<\/p>');
+            $("#textA").text(obj.message);
+        });
+
+	client.subscribe('/resposta', function (obj) {
+           
+
+		if(obj.resp == 'A') 
+                {
+                    $respostas[0] = $respostas[0] + 1;
+		    $("#qtdA").text($respostas[0]);
+
+                }	         	
+
+		if(obj.resp == 'B')
+                {
+                    $respostas[1] = $respostas[1] + 1;
+                    $("#qtdB").text($respostas[1]);
+
+                }
+		if(obj.resp == 'C')
+                {
+                    $respostas[2] = $respostas[2] + 1;
+                    $("#qtdC").text($respostas[2]);
+
+                }
+
+		if(obj.resp == 'D')
+                {
+                    $respostas[3] = $respostas[3] + 1;
+                    $("#qtdD").text($respostas[3]);
+
+                }
+
+		
+
+
+		
+        });
+
+    </script>
+  </body>
+</html>
